@@ -16,7 +16,6 @@ export class HomePage{
       await expect(this.headerText.nth(0)).toHaveText(expectedText);
     }
 
-    // Methods related to selecting TO and FROM destinations
     async selectFromDestination(inputLocator: Locator, fillInputLocator: Locator, destination: string) {
       await inputLocator.click();
       await this.page.waitForSelector(locators.dropDownItems);
@@ -37,7 +36,7 @@ export class HomePage{
       await this.selectToDestination(this.toButton, this.toInput, to);
     }
 
-    // Method related to selecting date with lowest price
+    // Method for selecting date with lowest price
     async selectDateWithLowestPrice(): Promise<void> {
       await this.page.waitForSelector(locators.spanElement, {state: 'attached'});
       const dateElements = await this.page.$$(locators.dateElements);
@@ -74,8 +73,44 @@ export class HomePage{
       await this.page.waitForTimeout(3000);
       await this.page.waitForSelector(locators.fastestText);
       const text = await this.page.textContent(locators.fastestText);
+      //console.log(text);
       expect(text).toBe('Fastest');
     }    
+
+    async clickOnBookNowAndValidate(): Promise<void>{
+      await this.page.locator(locators.bookNowButton).nth(0).click();
+      await this.page.waitForTimeout(2000);
+      const text = await this.page.textContent(locators.priceSummary);
+      //console.log(text);
+      expect(text).toBe('Price Summary');
+    }
+
+    async validateTotalPriceWhenValidCoupon(): Promise<void>{
+      await this.page.waitForTimeout(3000);
+      const priceSummary = await this.page.locator(locators.priceSplitting).allTextContents();
+      //console.log(priceSummary);
+
+      const pricePlusTax = parseInt(priceSummary[0]) + parseInt(priceSummary[1]);
+      //console.log(pricePlusTax);
+      const grandTotal = await this.page.locator(locators.totalPrice).nth(0).textContent();
+      if(grandTotal){
+        const totalPrice = parseInt(grandTotal.replace(',', '').trim());
+        expect(pricePlusTax - parseInt(priceSummary[2])).toBe(totalPrice);
+      }
+    }
+
+    async validateInvalidCouponErrorMessage(): Promise<void>{
+      await this.page.locator(locators.cancelButtonToRemoveCoupon).click();
+      const invalidCode = 'DAJHFD';
+      await this.page.locator(locators.inputCouponCode).fill(invalidCode);
+      await this.page.locator(locators.applyCouponCode).click();
+      await this.page.waitForTimeout(2000);
+
+      const errorMessage = await this.page.locator(locators.errorMessageInvalidCoupon).textContent();
+      //console.log(errorMessage);
+      expect(errorMessage).toBe('Invalid Coupon');
+    }
+
 
     // ================= Methods to get the selectors ==================
     get headerText(): Locator {
