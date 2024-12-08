@@ -1,14 +1,14 @@
 import { Page, Locator, expect } from "@playwright/test";
 import { locators } from "../locators/locator";
 
-export class HomePage{
+export class FlightsPage{
 
     readonly page: Page;
     constructor(page: Page){
       this.page = page;
     }
     
-    async openHomePage(url: string): Promise<void>{
+    async openFlightsPage(url: string): Promise<void>{
       await this.page.goto(url);
     }
 
